@@ -43,6 +43,15 @@ function parsePositiveInteger(name, fallback) {
   return parsedValue;
 }
 
+function parseTrustProxy(nodeEnv) {
+  const rawValue = process.env.TRUST_PROXY?.trim();
+  if (!rawValue) return nodeEnv === "production" ? "loopback" : false;
+
+  if (["false", "0", "off"].includes(rawValue.toLowerCase())) return false;
+  if (/^\d+$/.test(rawValue)) return Number(rawValue);
+  return rawValue;
+}
+
 function resolveJwtSecret(nodeEnv) {
   const jwtSecret = process.env.JWT_SECRET?.trim();
 
@@ -76,9 +85,11 @@ const nodeEnv = process.env.NODE_ENV || "development";
 
 const env = {
   port: parsePort(),
+  host: process.env.HOST?.trim() || (nodeEnv === "production" ? "127.0.0.1" : "0.0.0.0"),
   nodeEnv,
   databaseUrl: requireDatabaseUrl(),
   corsOrigin: process.env.CORS_ORIGIN || "http://localhost:5173",
+  trustProxy: parseTrustProxy(nodeEnv),
   legacyApiEnabled: process.env.LEGACY_API_ENABLED === "true",
   simulationEnabled: process.env.SIMULATION_ENABLED === "true",
   simulationIntervalMs: Number(process.env.SIMULATION_INTERVAL_MS || 3000),

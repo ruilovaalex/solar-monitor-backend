@@ -19,6 +19,8 @@
     "validate:mvp": "node scripts/validate-mvp.js",
     "db:hardening": "prisma db execute --schema prisma/schema.prisma --file prisma/sql/postgres-hardening.sql",
     "db:retention": "node scripts/apply-retention.js",
+    "db:backup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/backup-database.ps1",
+    "db:restore": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/restore-database.ps1",
     "lint": "node scripts/check-syntax.js"
   },
   "keywords": [],

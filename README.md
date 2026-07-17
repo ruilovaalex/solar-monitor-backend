@@ -15,6 +15,17 @@ PORT=3000
 CORS_ORIGIN="http://localhost:5173"
 ```
 
+Para ejecutar detras de Caddy en la PC institucional:
+
+```env
+NODE_ENV="production"
+HOST="127.0.0.1"
+TRUST_PROXY="loopback"
+CORS_ORIGIN="https://<direccion-publica>"
+```
+
+`HOST=127.0.0.1` evita publicar Express directamente. Caddy debe ser el unico punto de entrada y reenviar `/api` hacia `127.0.0.1:3000`. `TRUST_PROXY=loopback` permite obtener la IP original para los limites de login e ingesta sin confiar en proxies externos.
+
 ## Arranque
 
 ```bash
@@ -138,6 +149,29 @@ npm run validate:mvp
 ```
 
 `validate:mvp` no modifica datos. Verifica PostgreSQL y la coherencia del dashboard.
+
+## Respaldos y restauracion
+
+Crear un respaldo en formato PostgreSQL custom, con archivo SHA-256 y retencion predeterminada de 14 dias:
+
+```powershell
+npm run db:backup
+```
+
+Cambiar carpeta o retencion:
+
+```powershell
+npm run db:backup -- -OutputDirectory "D:\SolarMonitorBackups" -RetentionDays 30
+```
+
+Antes de restaurar, detenga el backend. La restauracion exige `-Force` porque reemplaza los datos actuales:
+
+```powershell
+npm run db:restore -- -BackupFile "D:\SolarMonitorBackups\solar_monitor_YYYYMMDD_HHMMSS.dump" -Force
+npm run prisma:status
+```
+
+Los respaldos creados dentro de `backups/` no se publican en Git. Para produccion, programe `npm run db:backup` mediante el Programador de tareas de Windows y copie periodicamente los archivos a una unidad diferente.
 
 ## Pendientes
 

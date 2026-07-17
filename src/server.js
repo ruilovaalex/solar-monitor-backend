@@ -6,8 +6,8 @@ const { startSimulator } = require("./modules/ingestion/simulator");
 const app = createApp();
 const simulator = startSimulator();
 
-const server = app.listen(env.port, () => {
-  console.log(`Solar Monitor API escuchando en http://localhost:${env.port}`);
+const server = app.listen(env.port, env.host, () => {
+  console.log(`Solar Monitor API escuchando en http://${env.host}:${env.port}`);
 });
 
 async function shutdown() {
