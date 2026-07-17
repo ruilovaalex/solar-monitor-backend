@@ -22,34 +22,43 @@ async function main() {
     where: { dispositivos: { some: {} } },
     select: { id: true, email: true },
   });
-  assert(dashboardOwner, "No existe un usuario con dispositivos para validar el dashboard.");
-
-  const dashboard = await new DashboardService(new DashboardRepository()).getDashboard({
-    range: "30d",
-    granularity: "minute",
-  }, dashboardOwner.id);
-  const invalidBalances = dashboard.chart.filter(
-    (point) => point.powerBalanceKw !== null
-      && (point.generationPowerKw === null || point.consumptionPowerKw === null),
-  );
-
   assert(databaseInfo?.database, "No se pudo identificar la base PostgreSQL activa.");
-  assert(dashboard.selection.range === "30d", "El dashboard no respeto el rango solicitado.");
-  assert(dashboard.selection.granularity === "minute", "El dashboard no respeto la granularidad solicitada.");
-  assert(invalidBalances.length === 0, "Se detectaron balances sin generacion y consumo comparables.");
+
+  let dashboardResult = {
+    status: "empty",
+    message: "La base no contiene dispositivos. Estado valido para una instalacion nueva.",
+  };
+
+  if (dashboardOwner) {
+    const dashboard = await new DashboardService(new DashboardRepository()).getDashboard({
+      range: "30d",
+      granularity: "minute",
+    }, dashboardOwner.id);
+    const invalidBalances = dashboard.chart.filter(
+      (point) => point.powerBalanceKw !== null
+        && (point.generationPowerKw === null || point.consumptionPowerKw === null),
+    );
+
+    assert(dashboard.selection.range === "30d", "El dashboard no respeto el rango solicitado.");
+    assert(dashboard.selection.granularity === "minute", "El dashboard no respeto la granularidad solicitada.");
+    assert(invalidBalances.length === 0, "Se detectaron balances sin generacion y consumo comparables.");
+
+    dashboardResult = {
+      status: "ok",
+      user: dashboardOwner.email,
+      points: dashboard.chart.length,
+      comparablePoints: dashboard.chart.filter((point) => point.balance !== null).length,
+      range: dashboard.selection.range,
+      granularity: dashboard.selection.granularity,
+    };
+  }
 
   console.log(JSON.stringify({
     status: "ok",
     database: databaseInfo.database,
     schema: databaseInfo.schema,
     records: { users, devices, rawReadings, history, summaries },
-    dashboard: {
-      user: dashboardOwner.email,
-      points: dashboard.chart.length,
-      comparablePoints: dashboard.chart.filter((point) => point.balance !== null).length,
-      range: dashboard.selection.range,
-      granularity: dashboard.selection.granularity,
-    },
+    dashboard: dashboardResult,
   }, null, 2));
 }
 

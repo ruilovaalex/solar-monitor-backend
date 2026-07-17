@@ -148,7 +148,7 @@ npm run prisma:status
 npm run validate:mvp
 ```
 
-`validate:mvp` no modifica datos. Verifica PostgreSQL y la coherencia del dashboard.
+`validate:mvp` no modifica datos. Verifica PostgreSQL y la coherencia del dashboard; una instalacion nueva sin dispositivos se reporta como `empty` y se considera valida.
 
 ## Respaldos y restauracion
 
